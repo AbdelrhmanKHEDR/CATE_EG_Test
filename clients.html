@@ -116,20 +116,16 @@
         }
 
         .client-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            border-color: #3498db;
+            transform: translateY(-10px) scale(1.08);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
 
         .client-logo {
             max-width: 120px;
             max-height: 70px;
-            width: auto;
-            height: auto;
-            filter: grayscale(100%);
-            opacity: 0.8;
-            transition: all 0.3s ease;
-            margin-bottom: 12px;
+            filter: none;          /* FULL COLOR */
+            opacity: 1;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
         }
 
         .client-card:hover .client-logo {
@@ -252,10 +248,10 @@
             }
 
             .carousel-track {
-               display: flex;
-               gap: 25px;
-               transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-               padding: 10px 0; /* Slower, smoother transition */
+                display: flex;
+                gap: 25px;
+                will-change: transform;
+                transition: none; /* JS controls motion */
             }
             .carousel-btn {
                 width: 40px;
@@ -367,7 +363,7 @@ footer .copyright {
       </div>
       <!-- end loader -->
       <!-- header -->
-      <header>
+           <header>
          <!-- header inner -->
          <div class="header">
             <div class="container-fluid">
@@ -389,8 +385,8 @@ footer .copyright {
                            </button>
                            <div class="collapse navbar-collapse" id="navbarsExample04">
                               <ul class="navbar-nav mr-auto">
-                                 <li class="nav-item active">
-                                    <a class="nav-link" href="about.html"> About Us  </a>
+                                 <li class="nav-item ">
+                                       <a class="nav-link" href="about.html"> About Us  </a>
                                  </li> 
                                  <li class="nav-item">
                                     <a class="nav-link" href="clients.html">Our Clients</a>
@@ -401,8 +397,11 @@ footer .copyright {
                                  <li class="nav-item">
                                     <a class="nav-link" href="contact.html">Contact Us</a>
                                  </li>
+                                 <li class="nav-item">
+                                    <a class="nav-link" href="whyus.html">Why Us</a>
+                                 </li>
                               </ul>
-                              <div >
+                              <div>
                                  <a href="index.html">
                                     <img src="images/atlaslogobig.png" alt="Logo" class="nav-logo">
                                  </a>
@@ -688,132 +687,102 @@ footer .copyright {
         this.setupHoverEvents();
     }
     
-    renderSliders() {
-        this.slidersContainer.innerHTML = '';
+   renderSliders() {
+    this.slidersContainer.innerHTML = '';
+    this.sliders = [];
+    
+    this.slidersData.forEach((sliderData, index) => {
+        const shouldScroll = sliderData.clients.length > 5;
         
-        this.slidersData.forEach((sliderData, index) => {
-            const clientCount = sliderData.clients.length;
-            const shouldScroll = clientCount > 5;
-            
-            const sliderGroup = document.createElement('div');
-            sliderGroup.className = 'slider-group';
-            sliderGroup.innerHTML = `
-                <h3 class="slider-title">${sliderData.title}</h3>
-                <div class="carousel-container">
-                    <div class="carousel-track ${!shouldScroll ? 'no-scroll' : ''}" id="track${index}">
-                        ${sliderData.clients.map(client => `
-                            <div class="client-card">
-                                <img src="${client.logo}" alt="${client.name}" class="client-logo">
-                                <div class="client-name">${client.name}</div>
-                                ${client.established ? `<div class="established">${client.established}</div>` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${shouldScroll ? `
-                        <button class="carousel-btn prev" data-slider="${index}">→</button>
-                        <button class="carousel-btn next" data-slider="${index}">←</button>
-                    ` : ''}
+        // Create HTML for three identical sets for smoother looping
+        const logosHTML = sliderData.clients.map(client => 
+            `<div class="client-card">
+                <img src="${client.logo}" alt="${client.name}">
+            </div>`
+        ).join('');
+        
+        const sliderGroup = document.createElement('div');
+        sliderGroup.className = 'slider-group';
+        sliderGroup.innerHTML = `
+            <h3 class="slider-title">${sliderData.title}</h3>
+            <div class="carousel-container">
+                <div class="carousel-track" id="track${index}">
+                    ${logosHTML} 
+                    ${logosHTML} 
+                    ${logosHTML} <!-- ✅ THREE COPIES FOR SMOOTHER LOOP -->
                 </div>
-            `;
-            
-            this.slidersContainer.appendChild(sliderGroup);
-        });
+                ${shouldScroll ? 
+                    `<button class="carousel-btn prev" data-slider="${index}">→</button>
+                     <button class="carousel-btn next" data-slider="${index}">←</button>` 
+                    : ''}
+            </div>
+        `;
         
-        // Initialize all sliders
-        this.sliders = this.slidersData.map((sliderData, index) => {
-            const clientCount = sliderData.clients.length;
-            const shouldScroll = clientCount > 5;
-            
-            return {
-                currentPosition: 0,
-                totalItems: clientCount,
-                shouldScroll: shouldScroll,
-                scrollInterval: null,
-                isScrolling: false
-            };
+        this.slidersContainer.appendChild(sliderGroup);
+        
+        this.sliders.push({
+            totalItems: sliderData.clients.length,
+            position: 0,
+            speed: 0,
+            isScrolling: false,
+            raf: null
         });
-    }
+    });
+}
     
-    setupHoverEvents() {
-        // Previous button hover events
-        document.querySelectorAll('.carousel-btn.prev').forEach(btn => {
-            const sliderIndex = parseInt(btn.getAttribute('data-slider'));
-            
+   setupHoverEvents() {
+        document.querySelectorAll('.carousel-btn').forEach(btn => {
+            const sliderIndex = +btn.dataset.slider;
+            const direction = btn.classList.contains('next') ? -1 : 1;
+
             btn.addEventListener('mouseenter', () => {
-                this.startContinuousScroll(sliderIndex, 'prev');
+                this.startInfiniteScroll(sliderIndex, direction);
             });
-            
+
             btn.addEventListener('mouseleave', () => {
-                this.stopContinuousScroll(sliderIndex);
-            });
-        });
-        
-        // Next button hover events
-        document.querySelectorAll('.carousel-btn.next').forEach(btn => {
-            const sliderIndex = parseInt(btn.getAttribute('data-slider'));
-            
-            btn.addEventListener('mouseenter', () => {
-                this.startContinuousScroll(sliderIndex, 'next');
-            });
-            
-            btn.addEventListener('mouseleave', () => {
-                this.stopContinuousScroll(sliderIndex);
+                this.stopInfiniteScroll(sliderIndex);
             });
         });
     }
     
-    startContinuousScroll(sliderIndex, direction) {
-        const slider = this.sliders[sliderIndex];
-        if (!slider.shouldScroll || slider.isScrolling) return;
-        
-        slider.isScrolling = true;
-        
-        // VERY SLOW movement - 800ms between each movement
-        slider.scrollInterval = setInterval(() => {
-            if (direction === 'prev') {
-                this.scrollPrev(sliderIndex);
-            } else {
-                this.scrollNext(sliderIndex);
-            }
-        }, 800); // Very slow - 800ms between movements
-    }
+    startInfiniteScroll(sliderIndex, direction) {
+    const slider = this.sliders[sliderIndex];
+    if (slider.isScrolling) return;
     
-    stopContinuousScroll(sliderIndex) {
-        const slider = this.sliders[sliderIndex];
-        if (slider.scrollInterval) {
-            clearInterval(slider.scrollInterval);
-            slider.scrollInterval = null;
-            slider.isScrolling = false;
-        }
-    }
+    const track = document.getElementById(`track${sliderIndex}`);
+    const cardWidth = 225;
+    const loopWidth = slider.totalItems * cardWidth;
     
-    scrollPrev(sliderIndex) {
-        const slider = this.sliders[sliderIndex];
-        const track = document.getElementById(`track${sliderIndex}`);
+    slider.isScrolling = true;
+    slider.speed = direction * 1.6;
+    
+    const animate = () => {
+        if (!slider.isScrolling) return;
         
-        slider.currentPosition--;
+        slider.position += slider.speed;
         
-        // Infinite loop - if at beginning, go to end
-        if (slider.currentPosition < 0) {
-            slider.currentPosition = slider.totalItems - 1;
+        // When we've scrolled one full loop width, reset position
+        // but do it in a way that maintains visual continuity
+        if (Math.abs(slider.position) >= loopWidth) {
+            // Reset to center position (middle copy)
+            slider.position += loopWidth * (slider.position > 0 ? -1 : 1);
         }
         
-        this.updateSliderPosition(sliderIndex, track);
-    }
+        track.style.transform = `translateX(${slider.position}px)`;
+        slider.raf = requestAnimationFrame(animate);
+    };
     
-    scrollNext(sliderIndex) {
-        const slider = this.sliders[sliderIndex];
-        const track = document.getElementById(`track${sliderIndex}`);
-        
-        slider.currentPosition++;
-        
-        // Infinite loop - if at end, go to beginning
-        if (slider.currentPosition >= slider.totalItems) {
-            slider.currentPosition = 0;
-        }
-        
-        this.updateSliderPosition(sliderIndex, track);
-    }
+    animate();
+}
+
+   stopInfiniteScroll(sliderIndex) {
+    const slider = this.sliders[sliderIndex];
+
+    slider.isScrolling = false;
+    cancelAnimationFrame(slider.raf);
+}
+
+    
     
     updateSliderPosition(sliderIndex, track) {
         const slider = this.sliders[sliderIndex];
@@ -823,8 +792,20 @@ footer .copyright {
     }
 }
 
-// Initialize sliders manager
-const slidersManager = new MultipleSliders();
+    // Initialize sliders manager
+    const slidersManager = new MultipleSliders();
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const currentPage = window.location.pathname.split("/").pop();
+
+        document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+            const linkPage = link.getAttribute("href");
+
+            if (linkPage === currentPage) {
+                link.classList.add("active");
+            }
+        });
+    });
     </script>
    </body>
 </html>

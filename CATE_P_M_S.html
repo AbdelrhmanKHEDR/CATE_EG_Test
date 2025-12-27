@@ -39,7 +39,7 @@
       </div>
       <!-- end loader -->
       <!-- header -->
-      <header>
+           <header>
          <!-- header inner -->
          <div class="header">
             <div class="container-fluid">
@@ -61,8 +61,8 @@
                            </button>
                            <div class="collapse navbar-collapse" id="navbarsExample04">
                               <ul class="navbar-nav mr-auto">
-                                 <li class="nav-item active">
-                                    <a class="nav-link" href="about.html"> About Us  </a>
+                                 <li class="nav-item ">
+                                       <a class="nav-link" href="about.html"> About Us  </a>
                                  </li> 
                                  <li class="nav-item">
                                     <a class="nav-link" href="clients.html">Our Clients</a>
@@ -73,8 +73,11 @@
                                  <li class="nav-item">
                                     <a class="nav-link" href="contact.html">Contact Us</a>
                                  </li>
+                                 <li class="nav-item">
+                                    <a class="nav-link" href="whyus.html">Why Us</a>
+                                 </li>
                               </ul>
-                              <div >
+                              <div>
                                  <a href="index.html">
                                     <img src="images/atlaslogobig.png" alt="Logo" class="nav-logo">
                                  </a>
@@ -202,6 +205,20 @@
       <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
       <script src="js/custom.js"></script>
       <script src="https:cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+
+       <script>
+         document.addEventListener("DOMContentLoaded", function () {
+            const currentPage = window.location.pathname.split("/").pop();
+
+            document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+               const linkPage = link.getAttribute("href");
+
+               if (linkPage === currentPage) {
+                     link.classList.add("active");
+               }
+            });
+         });
+      </script>
    </body>
 </html>
 
