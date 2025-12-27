@@ -1523,11 +1523,37 @@ ul.cont li {
 
 
 
-         #map {
+        
+
+        .branch-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .branch-btn {
+            padding: 12px 24px;
+            border: 2px solid #1e90ff;
+            background: transparent;
+            color: #1e90ff;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .branch-btn:hover,
+        .branch-btn.active {
+            background: #1e90ff;
+            color: #fff;
+        }
+
+        #map {
             height: 500px;
             width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
         }
         
         .header {
@@ -1603,4 +1629,31 @@ ul.cont li {
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
+
+        .navbar-nav .nav-link {
+            color: #fff;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: #000; /* black like hover */
+        }
         
+
+        .google-maps-link {
+            display: inline-block;       /* Make it look like a button */
+            padding: 8px 16px;           /* Button padding */
+            background-color: white;     /* Button background */
+            color: blue;                 /* Text color */
+            text-decoration: none;       /* Remove underline */
+            border: 2px solid blue;      /* Optional border */
+            border-radius: 5px;          /* Rounded corners */
+            transition: all 0.3s ease;   /* Smooth transition */
+            font-weight: bold;
+        }
+
+        .google-maps-link:hover {
+            background-color: blue;      /* Hover background */
+            color: white;                /* Hover text color */
+        }
